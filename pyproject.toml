@@ -20,7 +20,26 @@ dev-dependencies = [
     "pytest-mock>=3.10.0",
     "black>=22.0.0",
     "ruff>=0.1.0",
+    "mdformat>=0.7.0",
+    "mdformat-gfm>=0.3.0",
+    "mdformat-frontmatter>=2.0.0",
 ]
 
 [project.scripts]
 pharo-mcp-server = "pharo_mcp_server.server:mcp.run"
+
+[tool.mdformat]
+wrap = 120
+end_of_line = "lf"
+
+# Development scripts (optional, can also use uv run directly)
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-mock>=3.10.0", 
+    "black>=22.0.0",
+    "ruff>=0.1.0",
+    "mdformat>=0.7.0",
+    "mdformat-gfm>=0.3.0",
+    "mdformat-frontmatter>=2.0.0",
+]

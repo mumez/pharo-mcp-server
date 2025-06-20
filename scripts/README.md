@@ -34,6 +34,7 @@ PHARO_DIR=/path/to/pharo ./scripts/start-neoconsole-repl.sh
 This script is used by the integration tests in `tests/test_integration.py` to verify that the MCP server functions work correctly with real Pharo instances.
 
 Run integration tests with:
+
 ```bash
 # Run all tests including integration tests
 uv run pytest

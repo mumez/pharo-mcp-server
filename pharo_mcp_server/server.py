@@ -67,7 +67,7 @@ def get_pharo_metric(_: Context, metric: str) -> str:
     return get_pharo_system_metric(metric)
 
 
-#　TODO: support after server mode is implemented
+# 　TODO: support after server mode is implemented
 # @mcp.tool("install_package")
 def install_package(_: Context, baseline: str, repository: str) -> str:
     """
@@ -138,8 +138,6 @@ def get_method_source_tool(_: Context, class_name: str, selector: str) -> str:
         The method source code
     """
     return get_method_source(class_name, selector)
-
-
 
 
 if __name__ == "__main__":

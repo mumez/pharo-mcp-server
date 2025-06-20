@@ -29,13 +29,13 @@ jobs:
     - name: Install dependencies
       run: uv sync --all-extras --dev
 
+    - name: Check code formatting
+      run: |
+        uv run black --check pharo_mcp_server/
+        uv run ruff check pharo_mcp_server/
+
+    - name: Check markdown formatting  
+      run: uv run mdformat --check README.md scripts/README.md
+
     - name: Run unit tests
       run: uv run pytest -m "not integration" --verbose
-
-    - name: Run linting
-      run: |
-        uv run ruff check pharo_mcp_server/
-        uv run black --check pharo_mcp_server/
-
-    - name: Check markdown formatting
-      run: uv run mdformat --check README.md scripts/README.md

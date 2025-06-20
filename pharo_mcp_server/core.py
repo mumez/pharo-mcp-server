@@ -237,5 +237,3 @@ def get_method_source(class_name: str, selector: str) -> str:
     """
     expression = f"{class_name} sourceCodeAt: #{selector}"
     return evaluate_pharo_neo_console(expression)
-
-

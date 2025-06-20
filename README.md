@@ -1,5 +1,7 @@
 # pharo-mcp-server
 
+[![Tests](https://github.com/mumez/pharo-mcp-server/actions/workflows/test.yml/badge.svg)](https://github.com/mumez/pharo-mcp-server/actions/workflows/test.yml)
+
 A local MCP server to evaluate Pharo Smalltalk expressions and get system information via [NeoConsole](https://github.com/svenvc/NeoConsole).
 
 ## Prerequisites

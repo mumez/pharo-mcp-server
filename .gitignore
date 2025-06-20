@@ -200,3 +200,6 @@ internal/
 CLAUDE.md
 .claude/
 
+# GitHub Actions local runner (if used)
+.github/workflows/local/
+

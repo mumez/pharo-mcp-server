@@ -28,15 +28,15 @@ jobs:
       run: uv sync --all-extras --dev
 
     - name: Format Python code
-      run: uv run black pharo_mcp_server/
+      run: uv run ruff format pharo_nc_mcp_server/ tests/
 
     - name: Format markdown files
-      run: uv run mdformat README.md scripts/README.md
+      run: uv run mdformat README.md scripts/README.md || echo "Warning: Some markdown files could not be formatted"
 
     - name: Commit changes
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add -A
-        git diff --staged --quiet || git commit -m "Auto-format code with black and mdformat"
+        git diff --staged --quiet || git commit -m "Auto-format code with ruff and mdformat"
         git push

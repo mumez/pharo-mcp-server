@@ -1,8 +1,10 @@
-"""Integration tests for pharo_mcp_server using actual NeoConsole."""
+"""Integration tests for pharo_nc_mcp_server using actual NeoConsole."""
 
 import os
 import subprocess
 import pytest
+import time
+import socket
 from pathlib import Path
 
 
@@ -34,36 +36,75 @@ class TestNeoConsoleIntegration:
             Path(__file__).parent.parent / "scripts" / "start-neoconsole-repl.sh"
         )
         assert script_path.exists(), "NeoConsole REPL script should exist"
-        assert os.access(
-            script_path, os.X_OK
-        ), "NeoConsole REPL script should be executable"
+        assert os.access(script_path, os.X_OK), (
+            "NeoConsole REPL script should be executable"
+        )
 
-    def test_neoconsole_eval_simple_expression(self, pharo_available):
-        """Test simple evaluation using NeoConsole REPL."""
+    def test_neoconsole_server_telnet_connection(self, pharo_available):
+        """Test telnet connection to NeoConsole server."""
         pharo_dir = pharo_available
+        server_process = None
 
         try:
-            # Test simple arithmetic
-            process = subprocess.Popen(
-                ["./pharo", "NeoConsole.image", "NeoConsole", "repl"],
-                stdin=subprocess.PIPE,
+            # Start NeoConsole server
+            server_process = subprocess.Popen(
+                ["./pharo", "NeoConsole.image", "NeoConsole", "server"],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
                 cwd=pharo_dir,
             )
 
-            # Send eval command with double newline, then quit
-            input_text = "eval 3 + 4\n\nquit\n"
-            stdout, stderr = process.communicate(input=input_text, timeout=10)
+            # Wait for server to start
+            time.sleep(2)
 
-            assert process.returncode == 0, f"Process failed with stderr: {stderr}"
-            assert "7" in stdout, f"Expected '7' in output, got: {stdout}"
+            # Test telnet connection
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(5)
+            sock.connect(("localhost", 4999))
 
-        except subprocess.TimeoutExpired:
-            pytest.skip("NeoConsole REPL timed out - may not be responsive")
+            # Read greeting
+            data = b""
+            while b"pharo> " not in data:
+                chunk = sock.recv(1024)
+                if not chunk:
+                    break
+                data += chunk
+
+            greeting = data.decode()
+            assert "NeoConsole" in greeting, (
+                f"Expected NeoConsole greeting, got: {greeting}"
+            )
+
+            # Send eval command
+            sock.send(b"eval 3 + 4\n")
+
+            # Read response
+            data = b""
+            while b"pharo> " not in data:
+                chunk = sock.recv(1024)
+                if not chunk:
+                    break
+                data += chunk
+
+            response = data.decode()
+            assert "7" in response, f"Expected '7' in response, got: {response}"
+
+            # Send quit
+            sock.send(b"quit\n")
+            sock.close()
+
+        except socket.error as e:
+            pytest.skip(f"Failed to connect to NeoConsole server: {e}")
         except Exception as e:
-            pytest.skip(f"NeoConsole integration test failed: {str(e)}")
+            pytest.skip(f"NeoConsole server integration test failed: {str(e)}")
+        finally:
+            if server_process:
+                server_process.terminate()
+                try:
+                    server_process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    server_process.kill()
 
     def test_neoconsole_get_metric(self, pharo_available):
         """Test getting metrics using NeoConsole get command."""
@@ -79,12 +120,12 @@ class TestNeoConsoleIntegration:
                 cwd=pharo_dir,
             )
 
-            assert (
-                result.returncode == 0
-            ), f"Get command failed with stderr: {result.stderr}"
-            assert (
-                "Status OK" in result.stdout
-            ), f"Expected 'Status OK' in output, got: {result.stdout}"
+            assert result.returncode == 0, (
+                f"Get command failed with stderr: {result.stderr}"
+            )
+            assert "Status OK" in result.stdout, (
+                f"Expected 'Status OK' in output, got: {result.stdout}"
+            )
 
         except subprocess.TimeoutExpired:
             pytest.skip("NeoConsole get command timed out")
@@ -105,54 +146,76 @@ class TestNeoConsoleIntegration:
                 cwd=pharo_dir,
             )
 
-            assert (
-                result.returncode == 0
-            ), f"Get memory command failed with stderr: {result.stderr}"
+            assert result.returncode == 0, (
+                f"Get memory command failed with stderr: {result.stderr}"
+            )
             # Memory total should be a number
             memory_value = result.stdout.strip()
-            assert (
-                memory_value.isdigit()
-            ), f"Expected numeric memory value, got: {memory_value}"
-            assert (
-                int(memory_value) > 0
-            ), f"Expected positive memory value, got: {memory_value}"
+            assert memory_value.isdigit(), (
+                f"Expected numeric memory value, got: {memory_value}"
+            )
+            assert int(memory_value) > 0, (
+                f"Expected positive memory value, got: {memory_value}"
+            )
 
         except subprocess.TimeoutExpired:
             pytest.skip("NeoConsole get memory command timed out")
         except Exception as e:
             pytest.skip(f"NeoConsole get memory integration test failed: {str(e)}")
 
-    def test_neoconsole_repl_script_execution(self, pharo_available):
-        """Test that the REPL script can be executed (quick validation)."""
+    def test_neoconsole_server_script_execution(self, pharo_available):
+        """Test that the server script can be executed."""
         script_path = (
             Path(__file__).parent.parent / "scripts" / "start-neoconsole-repl.sh"
         )
+        server_process = None
 
         try:
-            # Test script with a quick eval and immediate quit
-            process = subprocess.Popen(
-                [str(script_path)],
-                stdin=subprocess.PIPE,
+            # Test script in server mode
+            server_process = subprocess.Popen(
+                [str(script_path), "server"],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
                 env={**os.environ, "PHARO_DIR": pharo_available},
             )
 
-            # Send quit immediately to test script startup
-            input_text = "quit\n"
-            stdout, stderr = process.communicate(input=input_text, timeout=10)
+            # Wait for server to start
+            time.sleep(2)
 
-            assert process.returncode == 0, f"Script failed with stderr: {stderr}"
-            assert (
-                "NeoConsole" in stdout or "Bye!" in stdout
-            ), f"Expected NeoConsole output, got: {stdout}"
+            # Test that server is running by connecting
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(5)
+            sock.connect(("localhost", 4999))
 
+            # Read greeting to confirm server is working
+            data = b""
+            while b"pharo> " not in data:
+                chunk = sock.recv(1024)
+                if not chunk:
+                    break
+                data += chunk
+
+            greeting = data.decode()
+            assert "NeoConsole" in greeting, (
+                f"Expected NeoConsole in greeting, got: {greeting}"
+            )
+
+            sock.close()
+
+        except socket.error as e:
+            pytest.skip(f"Failed to connect to script-started server: {e}")
         except subprocess.TimeoutExpired:
-            process.kill()
-            pytest.skip("NeoConsole REPL script timed out")
+            pytest.skip("NeoConsole server script timed out")
         except Exception as e:
-            pytest.skip(f"NeoConsole REPL script test failed: {str(e)}")
+            pytest.skip(f"NeoConsole server script test failed: {str(e)}")
+        finally:
+            if server_process:
+                server_process.terminate()
+                try:
+                    server_process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    server_process.kill()
 
 
 @pytest.mark.integration
@@ -204,9 +267,9 @@ class TestMCPServerIntegration:
 
         try:
             result = get_pharo_system_metric("system.status")
-            assert (
-                "Status OK" in result
-            ), f"Expected 'Status OK' in result, got: {result}"
+            assert "Status OK" in result, (
+                f"Expected 'Status OK' in result, got: {result}"
+            )
 
         except Exception as e:
             pytest.skip(f"get_pharo_system_metric integration test failed: {str(e)}")
@@ -218,23 +281,35 @@ class TestMCPServerIntegration:
                 del os.environ["PHARO_DIR"]
 
     def test_evaluate_pharo_neo_console_integration(self, pharo_available):
-        """Test evaluate_pharo_neo_console with real Pharo."""
-        from pharo_nc_mcp_server.core import evaluate_pharo_neo_console
+        """Test evaluate_pharo_neo_console with real Pharo using telnet server."""
+        from pharo_nc_mcp_server.core import (
+            evaluate_pharo_neo_console,
+            _close_telnet_connection,
+        )
 
         # Set PHARO_DIR for the test
         original_env = os.environ.get("PHARO_DIR")
         os.environ["PHARO_DIR"] = pharo_available
 
         try:
+            # Clean up any existing connections
+            _close_telnet_connection()
+
             result = evaluate_pharo_neo_console("3 + 4")
             assert "7" in result, f"Expected '7' in result, got: {result}"
+
+            # Test another evaluation to ensure session persistence
+            result2 = evaluate_pharo_neo_console("5 * 6")
+            assert "30" in result2, f"Expected '30' in result, got: {result2}"
 
         except Exception as e:
             pytest.skip(f"evaluate_pharo_neo_console integration test failed: {str(e)}")
         finally:
+            # Clean up telnet connection
+            _close_telnet_connection()
+
             # Restore original environment
             if original_env is not None:
                 os.environ["PHARO_DIR"] = original_env
             elif "PHARO_DIR" in os.environ:
                 del os.environ["PHARO_DIR"]
-

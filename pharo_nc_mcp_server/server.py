@@ -171,6 +171,7 @@ def shutdown_repl_session(_: Context) -> str:
         The result of the shutdown operation
     """
     from .core import _close_telnet_connection
+
     _close_telnet_connection()
     return "NeoConsole REPL session shutdown complete"
 

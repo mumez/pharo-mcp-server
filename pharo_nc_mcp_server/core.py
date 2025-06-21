@@ -16,26 +16,26 @@ _connection_lock = threading.Lock()
 
 # Export internal functions for testing
 __all__ = [
-    'evaluate_pharo_neo_console',
-    'evaluate_pharo_simple', 
-    'install_pharo_package',
-    'get_pharo_system_metric',
-    'get_class_comment',
-    'get_class_definition',
-    'get_method_list',
-    'get_method_source',
-    'get_neo_console_command_history',
-    '_send_telnet_command',
-    '_close_telnet_connection'
+    "evaluate_pharo_neo_console",
+    "evaluate_pharo_simple",
+    "install_pharo_package",
+    "get_pharo_system_metric",
+    "get_class_comment",
+    "get_class_definition",
+    "get_method_list",
+    "get_method_source",
+    "get_neo_console_command_history",
+    "_send_telnet_command",
+    "_close_telnet_connection",
 ]
 
 
 def _start_neoconsole_server():
     """Start NeoConsole telnet server."""
     global _neoconsole_process
-    
+
     pharo_dir = os.environ.get("PHARO_DIR", os.path.expanduser("~/pharo"))
-    
+
     try:
         cmd = ["./pharo", "NeoConsole.image", "NeoConsole", "server"]
         _neoconsole_process = subprocess.Popen(
@@ -45,10 +45,10 @@ def _start_neoconsole_server():
             text=True,
             cwd=pharo_dir,
         )
-        
+
         # Wait a moment for server to start
         time.sleep(2)
-        
+
         return True
     except Exception as e:
         print(f"Failed to start NeoConsole server: {e}")
@@ -58,14 +58,14 @@ def _start_neoconsole_server():
 def _get_socket_connection():
     """Get or create socket connection to NeoConsole server."""
     global _telnet_connection
-    
+
     with _connection_lock:
         if _telnet_connection is None:
             # Start server if not running
             if _neoconsole_process is None or _neoconsole_process.poll() is not None:
                 if not _start_neoconsole_server():
                     raise Exception("Failed to start NeoConsole server")
-            
+
             try:
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 sock.settimeout(10)
@@ -75,7 +75,7 @@ def _get_socket_connection():
                 _read_until_prompt(sock)
             except Exception as e:
                 raise Exception(f"Failed to connect to NeoConsole server: {e}")
-        
+
         return _telnet_connection
 
 
@@ -112,10 +112,10 @@ def _send_telnet_command(command: str, expect_prompt: bool = True) -> str:
     """Send command via socket and get response."""
     try:
         sock = _get_socket_connection()
-        
+
         # Send command
         sock.send(f"{command}\n".encode())
-        
+
         if expect_prompt:
             # Read until next prompt
             response = _read_until_prompt_or_close(sock, timeout=30)
@@ -125,9 +125,9 @@ def _send_telnet_command(command: str, expect_prompt: bool = True) -> str:
         else:
             # For quit command, read until connection closes
             response = _read_until_prompt_or_close(sock, timeout=10)
-        
+
         return response.strip()
-        
+
     except Exception as e:
         # Reset connection on error
         _close_telnet_connection()
@@ -137,7 +137,7 @@ def _send_telnet_command(command: str, expect_prompt: bool = True) -> str:
 def _close_telnet_connection():
     """Close socket connection and stop server."""
     global _telnet_connection, _neoconsole_process
-    
+
     with _connection_lock:
         if _telnet_connection:
             try:
@@ -145,7 +145,7 @@ def _close_telnet_connection():
             except Exception:
                 pass
             _telnet_connection = None
-        
+
         if _neoconsole_process:
             try:
                 _neoconsole_process.terminate()
@@ -224,13 +224,13 @@ def evaluate_pharo_neo_console(expression: str, command: str = "eval") -> str:
                 full_command = f"{command} {expression}"
             else:
                 full_command = command
-        
+
         response = _send_telnet_command(full_command)
-        
+
         # Clean up response by removing command echo and empty lines
-        lines = response.split('\n')
+        lines = response.split("\n")
         result_lines = []
-        
+
         for line in lines:
             line = line.strip()
             # Skip empty lines and command echoes
@@ -240,9 +240,9 @@ def evaluate_pharo_neo_console(expression: str, command: str = "eval") -> str:
             if line.startswith(command) and (not expression or expression in line):
                 continue
             result_lines.append(line)
-        
-        return '\n'.join(result_lines) if result_lines else "No output"
-        
+
+        return "\n".join(result_lines) if result_lines else "No output"
+
     except Exception as e:
         return f"Error: {str(e)}"
 

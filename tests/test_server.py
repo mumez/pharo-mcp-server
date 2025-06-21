@@ -18,9 +18,9 @@ class TestQuitNeoConsole:
     def test_quit_neo_console_success(self, mock_evaluate):
         """Test successful quit command."""
         mock_evaluate.return_value = "Bye!"
-        
+
         result = quit_neo_console_function()
-        
+
         mock_evaluate.assert_called_once_with("", "quit")
         assert result == "Bye!"
 
@@ -28,9 +28,9 @@ class TestQuitNeoConsole:
     def test_quit_neo_console_error(self, mock_evaluate):
         """Test quit command with error."""
         mock_evaluate.return_value = "Error: Process failed"
-        
+
         result = quit_neo_console_function()
-        
+
         mock_evaluate.assert_called_once_with("", "quit")
         assert result == "Error: Process failed"
 
@@ -38,10 +38,8 @@ class TestQuitNeoConsole:
     def test_quit_neo_console_timeout(self, mock_evaluate):
         """Test quit command with timeout."""
         mock_evaluate.return_value = "Error: Evaluation timed out"
-        
+
         result = quit_neo_console_function()
-        
+
         mock_evaluate.assert_called_once_with("", "quit")
         assert result == "Error: Evaluation timed out"
-
-

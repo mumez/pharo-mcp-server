@@ -25,7 +25,9 @@ class TestEvaluatePharoNeoConsole:
     def test_evaluate_expression_success(self, mock_send_telnet):
         """Test successful expression evaluation."""
         # Setup mock
-        mock_send_telnet.return_value = "eval 42 factorial\n\n1405006117752879898543142606244511569936384000000000"
+        mock_send_telnet.return_value = (
+            "eval 42 factorial\n\n1405006117752879898543142606244511569936384000000000"
+        )
 
         result = evaluate_pharo_neo_console("42 factorial")
 
@@ -272,7 +274,9 @@ class TestIntegration:
         )
 
         # Setup mock for evaluate_pharo_neo_console (uses telnet)
-        mock_send_telnet.return_value = "eval 42 factorial\n\n1405006117752879898543142606244511569936384000000000"
+        mock_send_telnet.return_value = (
+            "eval 42 factorial\n\n1405006117752879898543142606244511569936384000000000"
+        )
 
         # Test system status
         result1 = get_pharo_system_metric("system.status")
@@ -549,5 +553,3 @@ x factorial"""
         assert "1: 3+4" in result
         assert "2: Array new: 5" in result
         assert "x factorial" in result
-
-

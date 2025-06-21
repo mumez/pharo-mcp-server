@@ -36,15 +36,15 @@ class TestNeoConsoleIntegration:
             Path(__file__).parent.parent / "scripts" / "start-neoconsole-repl.sh"
         )
         assert script_path.exists(), "NeoConsole REPL script should exist"
-        assert os.access(
-            script_path, os.X_OK
-        ), "NeoConsole REPL script should be executable"
+        assert os.access(script_path, os.X_OK), (
+            "NeoConsole REPL script should be executable"
+        )
 
     def test_neoconsole_server_telnet_connection(self, pharo_available):
         """Test telnet connection to NeoConsole server."""
         pharo_dir = pharo_available
         server_process = None
-        
+
         try:
             # Start NeoConsole server
             server_process = subprocess.Popen(
@@ -54,15 +54,15 @@ class TestNeoConsoleIntegration:
                 text=True,
                 cwd=pharo_dir,
             )
-            
+
             # Wait for server to start
             time.sleep(2)
-            
+
             # Test telnet connection
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(5)
             sock.connect(("localhost", 4999))
-            
+
             # Read greeting
             data = b""
             while b"pharo> " not in data:
@@ -70,13 +70,15 @@ class TestNeoConsoleIntegration:
                 if not chunk:
                     break
                 data += chunk
-            
+
             greeting = data.decode()
-            assert "NeoConsole" in greeting, f"Expected NeoConsole greeting, got: {greeting}"
-            
+            assert "NeoConsole" in greeting, (
+                f"Expected NeoConsole greeting, got: {greeting}"
+            )
+
             # Send eval command
             sock.send(b"eval 3 + 4\n")
-            
+
             # Read response
             data = b""
             while b"pharo> " not in data:
@@ -84,14 +86,14 @@ class TestNeoConsoleIntegration:
                 if not chunk:
                     break
                 data += chunk
-            
+
             response = data.decode()
             assert "7" in response, f"Expected '7' in response, got: {response}"
-            
+
             # Send quit
             sock.send(b"quit\n")
             sock.close()
-            
+
         except socket.error as e:
             pytest.skip(f"Failed to connect to NeoConsole server: {e}")
         except Exception as e:
@@ -118,12 +120,12 @@ class TestNeoConsoleIntegration:
                 cwd=pharo_dir,
             )
 
-            assert (
-                result.returncode == 0
-            ), f"Get command failed with stderr: {result.stderr}"
-            assert (
-                "Status OK" in result.stdout
-            ), f"Expected 'Status OK' in output, got: {result.stdout}"
+            assert result.returncode == 0, (
+                f"Get command failed with stderr: {result.stderr}"
+            )
+            assert "Status OK" in result.stdout, (
+                f"Expected 'Status OK' in output, got: {result.stdout}"
+            )
 
         except subprocess.TimeoutExpired:
             pytest.skip("NeoConsole get command timed out")
@@ -144,17 +146,17 @@ class TestNeoConsoleIntegration:
                 cwd=pharo_dir,
             )
 
-            assert (
-                result.returncode == 0
-            ), f"Get memory command failed with stderr: {result.stderr}"
+            assert result.returncode == 0, (
+                f"Get memory command failed with stderr: {result.stderr}"
+            )
             # Memory total should be a number
             memory_value = result.stdout.strip()
-            assert (
-                memory_value.isdigit()
-            ), f"Expected numeric memory value, got: {memory_value}"
-            assert (
-                int(memory_value) > 0
-            ), f"Expected positive memory value, got: {memory_value}"
+            assert memory_value.isdigit(), (
+                f"Expected numeric memory value, got: {memory_value}"
+            )
+            assert int(memory_value) > 0, (
+                f"Expected positive memory value, got: {memory_value}"
+            )
 
         except subprocess.TimeoutExpired:
             pytest.skip("NeoConsole get memory command timed out")
@@ -177,15 +179,15 @@ class TestNeoConsoleIntegration:
                 text=True,
                 env={**os.environ, "PHARO_DIR": pharo_available},
             )
-            
+
             # Wait for server to start
             time.sleep(2)
-            
+
             # Test that server is running by connecting
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(5)
             sock.connect(("localhost", 4999))
-            
+
             # Read greeting to confirm server is working
             data = b""
             while b"pharo> " not in data:
@@ -193,10 +195,12 @@ class TestNeoConsoleIntegration:
                 if not chunk:
                     break
                 data += chunk
-            
+
             greeting = data.decode()
-            assert "NeoConsole" in greeting, f"Expected NeoConsole in greeting, got: {greeting}"
-            
+            assert "NeoConsole" in greeting, (
+                f"Expected NeoConsole in greeting, got: {greeting}"
+            )
+
             sock.close()
 
         except socket.error as e:
@@ -263,9 +267,9 @@ class TestMCPServerIntegration:
 
         try:
             result = get_pharo_system_metric("system.status")
-            assert (
-                "Status OK" in result
-            ), f"Expected 'Status OK' in result, got: {result}"
+            assert "Status OK" in result, (
+                f"Expected 'Status OK' in result, got: {result}"
+            )
 
         except Exception as e:
             pytest.skip(f"get_pharo_system_metric integration test failed: {str(e)}")
@@ -278,7 +282,10 @@ class TestMCPServerIntegration:
 
     def test_evaluate_pharo_neo_console_integration(self, pharo_available):
         """Test evaluate_pharo_neo_console with real Pharo using telnet server."""
-        from pharo_nc_mcp_server.core import evaluate_pharo_neo_console, _close_telnet_connection
+        from pharo_nc_mcp_server.core import (
+            evaluate_pharo_neo_console,
+            _close_telnet_connection,
+        )
 
         # Set PHARO_DIR for the test
         original_env = os.environ.get("PHARO_DIR")
@@ -287,10 +294,10 @@ class TestMCPServerIntegration:
         try:
             # Clean up any existing connections
             _close_telnet_connection()
-            
+
             result = evaluate_pharo_neo_console("3 + 4")
             assert "7" in result, f"Expected '7' in result, got: {result}"
-            
+
             # Test another evaluation to ensure session persistence
             result2 = evaluate_pharo_neo_console("5 * 6")
             assert "30" in result2, f"Expected '30' in result, got: {result2}"
@@ -300,10 +307,9 @@ class TestMCPServerIntegration:
         finally:
             # Clean up telnet connection
             _close_telnet_connection()
-            
+
             # Restore original environment
             if original_env is not None:
                 os.environ["PHARO_DIR"] = original_env
             elif "PHARO_DIR" in os.environ:
                 del os.environ["PHARO_DIR"]
-

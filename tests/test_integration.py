@@ -1,4 +1,4 @@
-"""Integration tests for pharo_mcp_server using actual NeoConsole."""
+"""Integration tests for pharo_nc_mcp_server using actual NeoConsole."""
 
 import os
 import subprocess

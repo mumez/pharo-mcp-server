@@ -28,7 +28,7 @@ jobs:
       run: uv sync --all-extras --dev
 
     - name: Format Python code
-      run: uv run black pharo_mcp_server/
+      run: uv run black pharo_nc_mcp_server/
 
     - name: Format markdown files
       run: uv run mdformat README.md scripts/README.md

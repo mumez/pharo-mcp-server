@@ -13,6 +13,7 @@ from pharo_nc_mcp_server.core import (
     get_class_definition,
     get_method_list,
     get_method_source,
+    get_neo_console_command_history,
 )
 
 
@@ -485,5 +486,68 @@ class TestGetMethodSource:
         assert "collect: aBlock" in result
         assert "newCollection := self species new" in result
         assert "^ newCollection" in result
+
+
+class TestGetNeoConsoleCommandHistory:
+    """Test cases for get_neo_console_command_history function."""
+
+    @patch("pharo_nc_mcp_server.core.evaluate_pharo_neo_console")
+    def test_get_command_history_success(self, mock_evaluate):
+        """Test successful command history retrieval."""
+        mock_evaluate.return_value = "1: 3+3\n2: Array comment\n3: Time now"
+
+        result = get_neo_console_command_history()
+
+        mock_evaluate.assert_called_once_with("", "history")
+        assert "1: 3+3" in result
+        assert "2: Array comment" in result
+        assert "3: Time now" in result
+
+    @patch("pharo_nc_mcp_server.core.evaluate_pharo_neo_console")
+    def test_get_command_history_empty(self, mock_evaluate):
+        """Test command history retrieval with empty history."""
+        mock_evaluate.return_value = "No history"
+
+        result = get_neo_console_command_history()
+
+        mock_evaluate.assert_called_once_with("", "history")
+        assert result == "No history"
+
+    @patch("pharo_nc_mcp_server.core.evaluate_pharo_neo_console")
+    def test_get_command_history_error(self, mock_evaluate):
+        """Test command history retrieval error handling."""
+        mock_evaluate.return_value = "Error: Connection failed"
+
+        result = get_neo_console_command_history()
+
+        mock_evaluate.assert_called_once_with("", "history")
+        assert result == "Error: Connection failed"
+
+    @patch("pharo_nc_mcp_server.core.evaluate_pharo_neo_console")
+    def test_get_command_history_single_entry(self, mock_evaluate):
+        """Test command history with single entry."""
+        mock_evaluate.return_value = "1: 42 factorial"
+
+        result = get_neo_console_command_history()
+
+        mock_evaluate.assert_called_once_with("", "history")
+        assert result == "1: 42 factorial"
+
+    @patch("pharo_nc_mcp_server.core.evaluate_pharo_neo_console")
+    def test_get_command_history_multiline_commands(self, mock_evaluate):
+        """Test command history with multiline commands."""
+        history_response = """1: 3+4
+2: Array new: 5
+3: | x |
+x := 42.
+x factorial"""
+        mock_evaluate.return_value = history_response
+
+        result = get_neo_console_command_history()
+
+        mock_evaluate.assert_called_once_with("", "history")
+        assert "1: 3+4" in result
+        assert "2: Array new: 5" in result
+        assert "x factorial" in result
 
 

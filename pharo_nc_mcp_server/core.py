@@ -24,6 +24,7 @@ __all__ = [
     'get_class_definition',
     'get_method_list',
     'get_method_source',
+    'get_neo_console_command_history',
     '_send_telnet_command',
     '_close_telnet_connection'
 ]
@@ -353,3 +354,13 @@ def get_method_source(class_name: str, selector: str) -> str:
     """
     expression = f"{class_name} sourceCodeAt: #{selector}"
     return evaluate_pharo_neo_console(expression)
+
+
+def get_neo_console_command_history() -> str:
+    """
+    Get the command history from the current NeoConsole session.
+
+    Returns:
+        The command history as a string, showing numbered entries
+    """
+    return evaluate_pharo_neo_console("", "history")

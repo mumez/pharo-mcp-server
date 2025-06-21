@@ -11,6 +11,7 @@ from .core import (
     get_class_definition,
     get_method_list,
     get_method_source,
+    get_neo_console_command_history,
 )
 
 
@@ -148,6 +149,17 @@ def get_method_source_tool(_: Context, class_name: str, selector: str) -> str:
         The method source code
     """
     return get_method_source(class_name, selector)
+
+
+@mcp.tool("get_neo_console_command_history")
+def get_neo_console_command_history_tool(_: Context) -> str:
+    """
+    Get the command history from the current NeoConsole session.
+
+    Returns:
+        The command history as a string, showing numbered entries of previously executed commands
+    """
+    return get_neo_console_command_history()
 
 
 @mcp.tool("shutdown_repl_session")

@@ -19,99 +19,68 @@ from pharo_nc_mcp_server.core import (
 class TestEvaluatePharoNeoConsole:
     """Test cases for evaluate_pharo_neo_console function."""
 
-    @patch("pharo_nc_mcp_server.core.subprocess.Popen")
+    @patch("pharo_nc_mcp_server.core._send_telnet_command")
     @patch.dict(os.environ, {"PHARO_DIR": "/test/pharo"})
-    def test_evaluate_expression_success(self, mock_popen):
+    def test_evaluate_expression_success(self, mock_send_telnet):
         """Test successful expression evaluation."""
         # Setup mock
-        mock_process = MagicMock()
-        mock_process.communicate.return_value = (
-            "NeoConsole Pharo-12.0.0+SNAPSHOT.build.1571.sha.cf5fcd22e66957962c97dffc58b0393b7f368147 (64 Bit)\npharo> eval 42 factorial\n\n1405006117752879898543142606244511569936384000000000\npharo> quit\nBye!\n",
-            "",
-        )
-        mock_process.returncode = 0
-        mock_popen.return_value = mock_process
+        mock_send_telnet.return_value = "eval 42 factorial\n\n1405006117752879898543142606244511569936384000000000"
 
         result = evaluate_pharo_neo_console("42 factorial")
 
         # Assertions
         assert "1405006117752879898543142606244511569936384000000000" in result
-        mock_popen.assert_called_once()
-        mock_process.communicate.assert_called_once_with(
-            input="eval 42 factorial\n\nquit\n", timeout=30
-        )
+        mock_send_telnet.assert_called_once_with("eval 42 factorial\n")
 
-    @patch("pharo_nc_mcp_server.core.subprocess.Popen")
+    @patch("pharo_nc_mcp_server.core._send_telnet_command")
     @patch.dict(os.environ, {"PHARO_DIR": "/test/pharo"})
-    def test_evaluate_expression_with_custom_command(self, mock_popen):
+    def test_evaluate_expression_with_custom_command(self, mock_send_telnet):
         """Test expression evaluation with custom command."""
-        mock_process = MagicMock()
-        mock_process.communicate.return_value = (
-            "NeoConsole Pharo-12.0.0+SNAPSHOT.build.1571.sha.cf5fcd22e66957962c97dffc58b0393b7f368147 (64 Bit)\npharo> get system.status\nStatus OK\npharo> quit\nBye!\n",
-            "",
-        )
-        mock_process.returncode = 0
-        mock_popen.return_value = mock_process
+        mock_send_telnet.return_value = "get system.status\nStatus OK"
 
         result = evaluate_pharo_neo_console("system.status", "get")
 
         assert "Status OK" in result
-        mock_process.communicate.assert_called_once_with(
-            input="get system.status\nquit\n", timeout=30
-        )
+        mock_send_telnet.assert_called_once_with("get system.status")
 
-    @patch("pharo_nc_mcp_server.core.subprocess.Popen")
+    @patch("pharo_nc_mcp_server.core._send_telnet_command")
     @patch.dict(os.environ, {"PHARO_DIR": "/test/pharo"})
-    def test_evaluate_expression_with_history_command(self, mock_popen):
+    def test_evaluate_expression_with_history_command(self, mock_send_telnet):
         """Test expression evaluation with history command (no expression)."""
-        mock_process = MagicMock()
-        mock_process.communicate.return_value = (
-            "NeoConsole Pharo-12.0.0+SNAPSHOT.build.1571.sha.cf5fcd22e66957962c97dffc58b0393b7f368147 (64 Bit)\npharo> history\n1: 3+3\n2: Array comment\npharo> quit\nBye!\n",
-            "",
-        )
-        mock_process.returncode = 0
-        mock_popen.return_value = mock_process
+        mock_send_telnet.return_value = "history\n1: 3+3\n2: Array comment"
 
         result = evaluate_pharo_neo_console("", "history")
 
         assert "1: 3+3" in result
         assert "2: Array comment" in result
-        mock_process.communicate.assert_called_once_with(
-            input="history\nquit\n", timeout=30
-        )
+        mock_send_telnet.assert_called_once_with("history")
 
-    @patch("pharo_nc_mcp_server.core.subprocess.Popen")
-    def test_evaluate_expression_process_error(self, mock_popen):
+    @patch("pharo_nc_mcp_server.core._send_telnet_command")
+    def test_evaluate_expression_process_error(self, mock_send_telnet):
         """Test handling of process errors."""
-        mock_process = MagicMock()
-        mock_process.communicate.return_value = ("", "Process failed")
-        mock_process.returncode = 1
-        mock_popen.return_value = mock_process
+        mock_send_telnet.side_effect = Exception("Process failed")
 
         result = evaluate_pharo_neo_console("invalid expression")
 
-        assert "Error: Process failed" == result
+        assert "Error: Process failed" in result
 
-    @patch("pharo_nc_mcp_server.core.subprocess.Popen")
-    def test_evaluate_expression_timeout(self, mock_popen):
+    @patch("pharo_nc_mcp_server.core._send_telnet_command")
+    def test_evaluate_expression_timeout(self, mock_send_telnet):
         """Test handling of timeout."""
-        mock_process = MagicMock()
-        mock_process.communicate.side_effect = subprocess.TimeoutExpired("cmd", 30)
-        mock_popen.return_value = mock_process
+        mock_send_telnet.side_effect = Exception("Evaluation timed out")
 
         result = evaluate_pharo_neo_console("long running expression")
 
-        assert result == "Error: Evaluation timed out"
+        assert "Error: Evaluation timed out" in result
 
-    @patch("pharo_nc_mcp_server.core.subprocess.Popen")
-    def test_evaluate_expression_file_not_found(self, mock_popen):
+    @patch("pharo_nc_mcp_server.core._send_telnet_command")
+    def test_evaluate_expression_file_not_found(self, mock_send_telnet):
         """Test handling of missing NeoConsole."""
-        mock_popen.side_effect = FileNotFoundError()
+        mock_send_telnet.side_effect = Exception("Failed to start NeoConsole server")
 
         result = evaluate_pharo_neo_console("42 factorial")
 
-        expected_path = os.path.expanduser("~/pharo")
-        assert f"Error: NeoConsole not found at {expected_path}" in result
+        assert "Error: Failed to start NeoConsole server" in result
 
 
 class TestEvaluatePharoSimple:
@@ -290,9 +259,9 @@ class TestIntegration:
     """Integration tests."""
 
     @patch("pharo_nc_mcp_server.core.subprocess.run")
-    @patch("pharo_nc_mcp_server.core.subprocess.Popen")
+    @patch("pharo_nc_mcp_server.core._send_telnet_command")
     @patch.dict(os.environ, {"PHARO_DIR": "/test/pharo"})
-    def test_full_workflow(self, mock_popen, mock_run):
+    def test_full_workflow(self, mock_send_telnet, mock_run):
         """Test a complete workflow with multiple operations."""
         # Setup mock for get_pharo_system_metric (uses subprocess.run)
         mock_run.return_value = MagicMock(
@@ -301,14 +270,8 @@ class TestIntegration:
             returncode=0,
         )
 
-        # Setup mock for evaluate_pharo_neo_console (uses subprocess.Popen)
-        mock_process = MagicMock()
-        mock_process.communicate.return_value = (
-            "NeoConsole Pharo-12.0.0+SNAPSHOT.build.1571.sha.cf5fcd22e66957962c97dffc58b0393b7f368147 (64 Bit)\npharo> eval 42 factorial\n\n1405006117752879898543142606244511569936384000000000\npharo> quit\nBye!\n",
-            "",
-        )
-        mock_process.returncode = 0
-        mock_popen.return_value = mock_process
+        # Setup mock for evaluate_pharo_neo_console (uses telnet)
+        mock_send_telnet.return_value = "eval 42 factorial\n\n1405006117752879898543142606244511569936384000000000"
 
         # Test system status
         result1 = get_pharo_system_metric("system.status")

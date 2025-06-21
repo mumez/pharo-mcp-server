@@ -39,6 +39,17 @@ def evaluate_code(_: Context, expression: str, command: str = "eval") -> str:
     return evaluate_pharo_neo_console(expression, command)
 
 
+@mcp.tool("quit_neo_console")
+def quit_neo_console(_: Context) -> str:
+    """
+    Send quit command to NeoConsole to terminate the REPL session.
+
+    Returns:
+        The result of the quit command
+    """
+    return evaluate_pharo_neo_console("", "quit")
+
+
 @mcp.tool("evaluate_simple_smalltalk")
 def evaluate_simple(_: Context, expression: str) -> str:
     """
@@ -67,8 +78,7 @@ def get_pharo_metric(_: Context, metric: str) -> str:
     return get_pharo_system_metric(metric)
 
 
-# 　TODO: support after server mode is implemented
-# @mcp.tool("install_package")
+@mcp.tool("install_package")
 def install_package(_: Context, baseline: str, repository: str) -> str:
     """
     Install a Pharo package using Metacello.
@@ -138,6 +148,19 @@ def get_method_source_tool(_: Context, class_name: str, selector: str) -> str:
         The method source code
     """
     return get_method_source(class_name, selector)
+
+
+@mcp.tool("shutdown_repl_session")
+def shutdown_repl_session(_: Context) -> str:
+    """
+    Shutdown the persistent NeoConsole REPL session and server.
+
+    Returns:
+        The result of the shutdown operation
+    """
+    from .core import _close_telnet_connection
+    _close_telnet_connection()
+    return "NeoConsole REPL session shutdown complete"
 
 
 if __name__ == "__main__":

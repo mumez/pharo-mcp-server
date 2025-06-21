@@ -1,16 +1,20 @@
 #!/bin/bash
 
-# Start NeoConsole REPL for Pharo Smalltalk
-# Usage: ./scripts/start-neoconsole-repl.sh
+# Start NeoConsole telnet server for Pharo Smalltalk
+# Usage: ./scripts/start-neoconsole-repl.sh [server|repl]
+# Default: server mode (for persistent sessions)
 
 set -e
+
+# Get mode from first argument, default to server
+MODE=${1:-server}
 
 # Default PHARO_DIR if not set
 if [ -z "$PHARO_DIR" ]; then
     PHARO_DIR="$HOME/pharo"
 fi
 
-echo "Starting NeoConsole REPL..."
+echo "Starting NeoConsole in $MODE mode..."
 echo "PHARO_DIR: $PHARO_DIR"
 
 # Check if PHARO_DIR exists
@@ -34,6 +38,18 @@ if [ ! -f "$PHARO_DIR/pharo" ]; then
     exit 1
 fi
 
-# Change to PHARO_DIR and start NeoConsole REPL
+# Change to PHARO_DIR and start NeoConsole
 cd "$PHARO_DIR"
-exec ./pharo NeoConsole.image NeoConsole repl
+
+if [ "$MODE" = "server" ]; then
+    echo "Starting NeoConsole telnet server on port 4999..."
+    echo "Connect with: telnet localhost 4999"
+    echo "Or use the MCP server tools to interact with it."
+    exec ./pharo NeoConsole.image NeoConsole server
+elif [ "$MODE" = "repl" ]; then
+    echo "Starting NeoConsole direct REPL..."
+    exec ./pharo NeoConsole.image NeoConsole repl
+else
+    echo "Error: Unknown mode '$MODE'. Use 'server' or 'repl'"
+    exit 1
+fi

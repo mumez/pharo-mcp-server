@@ -36,7 +36,8 @@ jobs:
       run: uv run ruff format --check pharo_nc_mcp_server/ tests/
 
     - name: Check markdown formatting  
-      run: uv run mdformat --check README.md scripts/README.md || echo "Warning: markdown formatting check failed"
+      run: |
+        uv run mdformat --check README.md scripts/README.md || echo "Warning: markdown formatting check failed"
 
     - name: Run unit tests
       run: uv run pytest -m "not integration" --verbose

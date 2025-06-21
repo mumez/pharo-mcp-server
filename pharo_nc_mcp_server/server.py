@@ -21,7 +21,7 @@ class PharoEvalRequest(BaseModel):
     command: str = "eval"
 
 
-mcp = FastMCP("pharo-mcp-server")
+mcp = FastMCP("pharo-nc-mcp-server")
 
 
 @mcp.tool("evaluate_smalltalk_with_neo_console")

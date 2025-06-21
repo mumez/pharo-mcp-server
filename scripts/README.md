@@ -1,6 +1,6 @@
 # Scripts
 
-This directory contains utility scripts for the pharo-mcp-server project.
+This directory contains utility scripts for the pharo-nc-mcp-server project.
 
 ## start-neoconsole-repl.sh
 

@@ -449,7 +449,7 @@ wheels = [
 ]
 
 [[package]]
-name = "pharo-mcp-server"
+name = "pharo-nc-mcp-server"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

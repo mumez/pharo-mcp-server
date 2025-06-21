@@ -175,7 +175,7 @@ class TestMCPServerIntegration:
 
     def test_evaluate_pharo_simple_integration(self, pharo_available):
         """Test evaluate_pharo_simple with real Pharo."""
-        from pharo_mcp_server.core import evaluate_pharo_simple
+        from pharo_nc_mcp_server.core import evaluate_pharo_simple
 
         # Set PHARO_DIR for the test
         original_env = os.environ.get("PHARO_DIR")
@@ -196,7 +196,7 @@ class TestMCPServerIntegration:
 
     def test_get_pharo_system_metric_integration(self, pharo_available):
         """Test get_pharo_system_metric with real Pharo."""
-        from pharo_mcp_server.core import get_pharo_system_metric
+        from pharo_nc_mcp_server.core import get_pharo_system_metric
 
         # Set PHARO_DIR for the test
         original_env = os.environ.get("PHARO_DIR")
@@ -219,7 +219,7 @@ class TestMCPServerIntegration:
 
     def test_evaluate_pharo_neo_console_integration(self, pharo_available):
         """Test evaluate_pharo_neo_console with real Pharo."""
-        from pharo_mcp_server.core import evaluate_pharo_neo_console
+        from pharo_nc_mcp_server.core import evaluate_pharo_neo_console
 
         # Set PHARO_DIR for the test
         original_env = os.environ.get("PHARO_DIR")

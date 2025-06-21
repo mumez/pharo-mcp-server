@@ -1,6 +1,6 @@
-# pharo-mcp-server
+# pharo-nc-mcp-server
 
-[![Tests](https://github.com/mumez/pharo-mcp-server/actions/workflows/test.yml/badge.svg)](https://github.com/mumez/pharo-mcp-server/actions/workflows/test.yml)
+[![Tests](https://github.com/mumez/pharo-nc-mcp-server/actions/workflows/test.yml/badge.svg)](https://github.com/mumez/pharo-nc-mcp-server/actions/workflows/test.yml)
 
 A local MCP server to evaluate Pharo Smalltalk expressions and get system information via [NeoConsole](https://github.com/svenvc/NeoConsole).
 
@@ -22,13 +22,13 @@ A local MCP server to evaluate Pharo Smalltalk expressions and get system inform
 
 ```bash
 git clone <repository-url>
-cd pharo-mcp-server
+cd pharo-nc-mcp-server
 ```
 
 2. Install dependencies using uv:
 
 ```bash
-uv sync
+uv sync --dev
 ```
 
 ## Usage
@@ -38,7 +38,7 @@ uv sync
 Start the server:
 
 ```bash
-uv run pharo-mcp-server
+uv run pharo-nc-mcp-server
 ```
 
 ### Cursor MCP settings
@@ -46,13 +46,13 @@ uv run pharo-mcp-server
 ```json:mcp.json
 {
   "mcpServers": {
-    "pharo-mcp-server": {
+    "pharo-nc-mcp-server": {
       "command": "uv",
       "args": [
         "--directory",
-        "/your-path/to/pharo-mcp-server",
+        "/your-path/to/pharo-nc-mcp-server",
         "run",
-        "pharo-mcp-server"
+        "pharo-nc-mcp-server"
       ]
     }
   }
@@ -137,11 +137,35 @@ get_method_source(class_name="Array", selector="asSet")
 
 ```bash
 # Format code
-uv run black pharo_mcp_server/
+uv run black pharo_nc_mcp_server/
 
 # Lint code
-uv run ruff check pharo_mcp_server/
+uv run ruff check pharo_nc_mcp_server/
 
 # Run tests
-uv run pytest
+uv run python -m pytest
+
+# Or use the test script
+./scripts/test.sh
+```
+
+### Development Scripts
+
+The project includes several convenience scripts in the `scripts/` directory:
+
+#### `scripts/format.sh`
+Formats all code and documentation files in one command:
+- Formats Python code using Black
+- Formats markdown files using mdformat
+- Runs linting checks with Ruff
+
+```bash
+./scripts/format.sh
+```
+
+#### `scripts/test.sh`
+Runs the test suite using pytest:
+
+```bash
+./scripts/test.sh
 ```

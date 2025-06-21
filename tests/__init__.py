@@ -1,1 +1,1 @@
-"""Test package for pharo-mcp-server."""
+"""Test package for pharo-nc-mcp-server."""

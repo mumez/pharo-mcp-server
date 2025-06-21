@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock
 import subprocess
 import os
 
-from pharo_mcp_server.core import (
+from pharo_nc_mcp_server.core import (
     evaluate_pharo_neo_console,
     evaluate_pharo_simple,
     install_pharo_package,
@@ -19,7 +19,7 @@ from pharo_mcp_server.core import (
 class TestEvaluatePharoNeoConsole:
     """Test cases for evaluate_pharo_neo_console function."""
 
-    @patch("pharo_mcp_server.core.subprocess.Popen")
+    @patch("pharo_nc_mcp_server.core.subprocess.Popen")
     @patch.dict(os.environ, {"PHARO_DIR": "/test/pharo"})
     def test_evaluate_expression_success(self, mock_popen):
         """Test successful expression evaluation."""
@@ -41,7 +41,7 @@ class TestEvaluatePharoNeoConsole:
             input="eval 42 factorial\n\nquit\n", timeout=30
         )
 
-    @patch("pharo_mcp_server.core.subprocess.Popen")
+    @patch("pharo_nc_mcp_server.core.subprocess.Popen")
     @patch.dict(os.environ, {"PHARO_DIR": "/test/pharo"})
     def test_evaluate_expression_with_custom_command(self, mock_popen):
         """Test expression evaluation with custom command."""
@@ -60,7 +60,7 @@ class TestEvaluatePharoNeoConsole:
             input="get system.status\nquit\n", timeout=30
         )
 
-    @patch("pharo_mcp_server.core.subprocess.Popen")
+    @patch("pharo_nc_mcp_server.core.subprocess.Popen")
     @patch.dict(os.environ, {"PHARO_DIR": "/test/pharo"})
     def test_evaluate_expression_with_history_command(self, mock_popen):
         """Test expression evaluation with history command (no expression)."""
@@ -80,7 +80,7 @@ class TestEvaluatePharoNeoConsole:
             input="history\nquit\n", timeout=30
         )
 
-    @patch("pharo_mcp_server.core.subprocess.Popen")
+    @patch("pharo_nc_mcp_server.core.subprocess.Popen")
     def test_evaluate_expression_process_error(self, mock_popen):
         """Test handling of process errors."""
         mock_process = MagicMock()
@@ -92,7 +92,7 @@ class TestEvaluatePharoNeoConsole:
 
         assert "Error: Process failed" == result
 
-    @patch("pharo_mcp_server.core.subprocess.Popen")
+    @patch("pharo_nc_mcp_server.core.subprocess.Popen")
     def test_evaluate_expression_timeout(self, mock_popen):
         """Test handling of timeout."""
         mock_process = MagicMock()
@@ -103,7 +103,7 @@ class TestEvaluatePharoNeoConsole:
 
         assert result == "Error: Evaluation timed out"
 
-    @patch("pharo_mcp_server.core.subprocess.Popen")
+    @patch("pharo_nc_mcp_server.core.subprocess.Popen")
     def test_evaluate_expression_file_not_found(self, mock_popen):
         """Test handling of missing NeoConsole."""
         mock_popen.side_effect = FileNotFoundError()
@@ -117,7 +117,7 @@ class TestEvaluatePharoNeoConsole:
 class TestEvaluatePharoSimple:
     """Test cases for evaluate_pharo_simple function."""
 
-    @patch("pharo_mcp_server.core.subprocess.run")
+    @patch("pharo_nc_mcp_server.core.subprocess.run")
     @patch.dict(os.environ, {"PHARO_DIR": "/test/pharo"})
     def test_evaluate_simple_success(self, mock_run):
         """Test successful simple expression evaluation."""
@@ -135,7 +135,7 @@ class TestEvaluatePharoSimple:
             cwd="/test/pharo",
         )
 
-    @patch("pharo_mcp_server.core.subprocess.run")
+    @patch("pharo_nc_mcp_server.core.subprocess.run")
     @patch.dict(os.environ, {"PHARO_DIR": "/test/pharo"})
     def test_evaluate_simple_error(self, mock_run):
         """Test simple evaluation with process error."""
@@ -147,7 +147,7 @@ class TestEvaluatePharoSimple:
 
         assert result == "Error: Syntax error"
 
-    @patch("pharo_mcp_server.core.subprocess.run")
+    @patch("pharo_nc_mcp_server.core.subprocess.run")
     def test_evaluate_simple_timeout(self, mock_run):
         """Test simple evaluation timeout."""
         mock_run.side_effect = subprocess.TimeoutExpired("cmd", 30)
@@ -156,7 +156,7 @@ class TestEvaluatePharoSimple:
 
         assert result == "Error: Evaluation timed out"
 
-    @patch("pharo_mcp_server.core.subprocess.run")
+    @patch("pharo_nc_mcp_server.core.subprocess.run")
     def test_evaluate_simple_file_not_found(self, mock_run):
         """Test simple evaluation with missing Pharo."""
         mock_run.side_effect = FileNotFoundError()
@@ -165,7 +165,7 @@ class TestEvaluatePharoSimple:
 
         assert "Error: Pharo not found" in result
 
-    @patch("pharo_mcp_server.core.subprocess.run")
+    @patch("pharo_nc_mcp_server.core.subprocess.run")
     def test_evaluate_simple_no_output(self, mock_run):
         """Test simple evaluation with no output."""
         mock_run.return_value = MagicMock(stdout="", stderr="", returncode=0)
@@ -177,7 +177,7 @@ class TestEvaluatePharoSimple:
     def test_evaluate_simple_default_pharo_dir(self):
         """Test default PHARO_DIR when environment variable is not set."""
         with patch.dict(os.environ, {}, clear=True):
-            with patch("pharo_mcp_server.core.subprocess.run") as mock_run:
+            with patch("pharo_nc_mcp_server.core.subprocess.run") as mock_run:
                 mock_run.return_value = MagicMock(
                     stdout="result", stderr="", returncode=0
                 )
@@ -193,7 +193,7 @@ class TestEvaluatePharoSimple:
 class TestInstallPharoPackage:
     """Test cases for install_pharo_package function."""
 
-    @patch("pharo_mcp_server.core.evaluate_pharo_neo_console")
+    @patch("pharo_nc_mcp_server.core.evaluate_pharo_neo_console")
     def test_install_package_success(self, mock_evaluate):
         """Test successful package installation."""
         mock_evaluate.return_value = "Package installed successfully"
@@ -211,7 +211,7 @@ class TestInstallPharoPackage:
 
         assert result == "Package installed successfully"
 
-    @patch("pharo_mcp_server.core.evaluate_pharo_neo_console")
+    @patch("pharo_nc_mcp_server.core.evaluate_pharo_neo_console")
     def test_install_package_error(self, mock_evaluate):
         """Test package installation error handling."""
         mock_evaluate.return_value = "Error: Package not found"
@@ -224,7 +224,7 @@ class TestInstallPharoPackage:
 class TestGetPharoSystemMetric:
     """Test cases for get_pharo_system_metric function."""
 
-    @patch("pharo_mcp_server.core.subprocess.run")
+    @patch("pharo_nc_mcp_server.core.subprocess.run")
     @patch.dict(os.environ, {"PHARO_DIR": "/test/pharo"})
     def test_get_metric_success(self, mock_run):
         """Test successful metric retrieval."""
@@ -241,7 +241,7 @@ class TestGetPharoSystemMetric:
         )
         assert result == "94466048"
 
-    @patch("pharo_mcp_server.core.subprocess.run")
+    @patch("pharo_nc_mcp_server.core.subprocess.run")
     def test_get_metric_error(self, mock_run):
         """Test metric retrieval error handling."""
         mock_run.return_value = MagicMock(
@@ -252,7 +252,7 @@ class TestGetPharoSystemMetric:
 
         assert result == "Error: Unknown metric"
 
-    @patch("pharo_mcp_server.core.subprocess.run")
+    @patch("pharo_nc_mcp_server.core.subprocess.run")
     def test_get_metric_timeout(self, mock_run):
         """Test metric retrieval timeout."""
         mock_run.side_effect = subprocess.TimeoutExpired("cmd", 30)
@@ -261,7 +261,7 @@ class TestGetPharoSystemMetric:
 
         assert result == "Error: Evaluation timed out"
 
-    @patch("pharo_mcp_server.core.subprocess.run")
+    @patch("pharo_nc_mcp_server.core.subprocess.run")
     def test_get_metric_file_not_found(self, mock_run):
         """Test metric retrieval with missing NeoConsole."""
         mock_run.side_effect = FileNotFoundError()
@@ -273,7 +273,7 @@ class TestGetPharoSystemMetric:
     def test_get_metric_default_pharo_dir(self):
         """Test default PHARO_DIR when environment variable is not set."""
         with patch.dict(os.environ, {}, clear=True):
-            with patch("pharo_mcp_server.core.subprocess.run") as mock_run:
+            with patch("pharo_nc_mcp_server.core.subprocess.run") as mock_run:
                 mock_run.return_value = MagicMock(
                     stdout="result", stderr="", returncode=0
                 )
@@ -289,8 +289,8 @@ class TestGetPharoSystemMetric:
 class TestIntegration:
     """Integration tests."""
 
-    @patch("pharo_mcp_server.core.subprocess.run")
-    @patch("pharo_mcp_server.core.subprocess.Popen")
+    @patch("pharo_nc_mcp_server.core.subprocess.run")
+    @patch("pharo_nc_mcp_server.core.subprocess.Popen")
     @patch.dict(os.environ, {"PHARO_DIR": "/test/pharo"})
     def test_full_workflow(self, mock_popen, mock_run):
         """Test a complete workflow with multiple operations."""
@@ -322,7 +322,7 @@ class TestIntegration:
 class TestGetClassComment:
     """Test cases for get_class_comment function."""
 
-    @patch("pharo_mcp_server.core.evaluate_pharo_neo_console")
+    @patch("pharo_nc_mcp_server.core.evaluate_pharo_neo_console")
     def test_get_class_comment_success(self, mock_evaluate):
         """Test successful class comment retrieval."""
         mock_evaluate.return_value = (
@@ -336,7 +336,7 @@ class TestGetClassComment:
             result == "I represent an object that holds a reference to another object."
         )
 
-    @patch("pharo_mcp_server.core.evaluate_pharo_neo_console")
+    @patch("pharo_nc_mcp_server.core.evaluate_pharo_neo_console")
     def test_get_class_comment_error(self, mock_evaluate):
         """Test class comment retrieval error handling."""
         mock_evaluate.return_value = "Error: Class not found"
@@ -346,7 +346,7 @@ class TestGetClassComment:
         mock_evaluate.assert_called_once_with("NonExistentClass comment")
         assert result == "Error: Class not found"
 
-    @patch("pharo_mcp_server.core.evaluate_pharo_neo_console")
+    @patch("pharo_nc_mcp_server.core.evaluate_pharo_neo_console")
     def test_get_class_comment_empty(self, mock_evaluate):
         """Test class comment retrieval with empty comment."""
         mock_evaluate.return_value = ""
@@ -360,7 +360,7 @@ class TestGetClassComment:
 class TestGetClassDefinition:
     """Test cases for get_class_definition function."""
 
-    @patch("pharo_mcp_server.core.evaluate_pharo_neo_console")
+    @patch("pharo_nc_mcp_server.core.evaluate_pharo_neo_console")
     def test_get_class_definition_success(self, mock_evaluate):
         """Test successful class definition retrieval."""
         mock_evaluate.return_value = "ArrayedCollection variableSubclass: #Array\n\tinstanceVariableNames: ''\n\tclassVariableNames: ''\n\tpoolDictionaries: ''\n\tcategory: 'Collections-Sequenceable'"
@@ -370,7 +370,7 @@ class TestGetClassDefinition:
         mock_evaluate.assert_called_once_with("Array definitionString")
         assert "ArrayedCollection variableSubclass: #Array" in result
 
-    @patch("pharo_mcp_server.core.evaluate_pharo_neo_console")
+    @patch("pharo_nc_mcp_server.core.evaluate_pharo_neo_console")
     def test_get_class_definition_error(self, mock_evaluate):
         """Test class definition retrieval error handling."""
         mock_evaluate.return_value = "Error: Class not found"
@@ -380,7 +380,7 @@ class TestGetClassDefinition:
         mock_evaluate.assert_called_once_with("NonExistentClass definitionString")
         assert result == "Error: Class not found"
 
-    @patch("pharo_mcp_server.core.evaluate_pharo_neo_console")
+    @patch("pharo_nc_mcp_server.core.evaluate_pharo_neo_console")
     def test_get_class_definition_with_special_characters(self, mock_evaluate):
         """Test class definition with special characters in class name."""
         mock_evaluate.return_value = (
@@ -396,7 +396,7 @@ class TestGetClassDefinition:
 class TestGetMethodList:
     """Test cases for get_method_list function."""
 
-    @patch("pharo_mcp_server.core.evaluate_pharo_neo_console")
+    @patch("pharo_nc_mcp_server.core.evaluate_pharo_neo_console")
     def test_get_method_list_success(self, mock_evaluate):
         """Test successful method list retrieval."""
         mock_evaluate.return_value = (
@@ -410,7 +410,7 @@ class TestGetMethodList:
         assert "#size" in result
         assert "#asSet" in result
 
-    @patch("pharo_mcp_server.core.evaluate_pharo_neo_console")
+    @patch("pharo_nc_mcp_server.core.evaluate_pharo_neo_console")
     def test_get_method_list_error(self, mock_evaluate):
         """Test method list retrieval error handling."""
         mock_evaluate.return_value = "Error: Class not found"
@@ -420,7 +420,7 @@ class TestGetMethodList:
         mock_evaluate.assert_called_once_with("NonExistentClass selectors")
         assert result == "Error: Class not found"
 
-    @patch("pharo_mcp_server.core.evaluate_pharo_neo_console")
+    @patch("pharo_nc_mcp_server.core.evaluate_pharo_neo_console")
     def test_get_method_list_empty(self, mock_evaluate):
         """Test method list retrieval with no methods."""
         mock_evaluate.return_value = "#()"
@@ -430,7 +430,7 @@ class TestGetMethodList:
         mock_evaluate.assert_called_once_with("EmptyClass selectors")
         assert result == "#()"
 
-    @patch("pharo_mcp_server.core.evaluate_pharo_neo_console")
+    @patch("pharo_nc_mcp_server.core.evaluate_pharo_neo_console")
     def test_get_method_list_complex_selectors(self, mock_evaluate):
         """Test method list with complex selectors."""
         mock_evaluate.return_value = (
@@ -447,7 +447,7 @@ class TestGetMethodList:
 class TestGetMethodSource:
     """Test cases for get_method_source function."""
 
-    @patch("pharo_mcp_server.core.evaluate_pharo_neo_console")
+    @patch("pharo_nc_mcp_server.core.evaluate_pharo_neo_console")
     def test_get_method_source_success(self, mock_evaluate):
         """Test successful method source retrieval."""
         mock_evaluate.return_value = (
@@ -460,7 +460,7 @@ class TestGetMethodSource:
         assert "asSet" in result
         assert "Set withAll: self" in result
 
-    @patch("pharo_mcp_server.core.evaluate_pharo_neo_console")
+    @patch("pharo_nc_mcp_server.core.evaluate_pharo_neo_console")
     def test_get_method_source_error(self, mock_evaluate):
         """Test method source retrieval error handling."""
         mock_evaluate.return_value = "Error: Method not found"
@@ -470,7 +470,7 @@ class TestGetMethodSource:
         mock_evaluate.assert_called_once_with("Array sourceCodeAt: #nonExistentMethod")
         assert result == "Error: Method not found"
 
-    @patch("pharo_mcp_server.core.evaluate_pharo_neo_console")
+    @patch("pharo_nc_mcp_server.core.evaluate_pharo_neo_console")
     def test_get_method_source_class_not_found(self, mock_evaluate):
         """Test method source retrieval with non-existent class."""
         mock_evaluate.return_value = "Error: Class not found"
@@ -482,7 +482,7 @@ class TestGetMethodSource:
         )
         assert result == "Error: Class not found"
 
-    @patch("pharo_mcp_server.core.evaluate_pharo_neo_console")
+    @patch("pharo_nc_mcp_server.core.evaluate_pharo_neo_console")
     def test_get_method_source_complex_selector(self, mock_evaluate):
         """Test method source retrieval with complex selector."""
         mock_evaluate.return_value = 'at:ifAbsent:\n\t"Answer the value at the given key, or the result of evaluating aBlock if not found."\n\t^ self at: key ifAbsent: aBlock'
@@ -493,7 +493,7 @@ class TestGetMethodSource:
         assert "at:ifAbsent:" in result
         assert "aBlock" in result
 
-    @patch("pharo_mcp_server.core.evaluate_pharo_neo_console")
+    @patch("pharo_nc_mcp_server.core.evaluate_pharo_neo_console")
     def test_get_method_source_with_special_characters(self, mock_evaluate):
         """Test method source with special characters in method name."""
         mock_evaluate.return_value = '= anObject\n\t"Answer whether the receiver and the argument represent the same object."\n\t^ self == anObject'
@@ -504,7 +504,7 @@ class TestGetMethodSource:
         assert "= anObject" in result
         assert "self == anObject" in result
 
-    @patch("pharo_mcp_server.core.evaluate_pharo_neo_console")
+    @patch("pharo_nc_mcp_server.core.evaluate_pharo_neo_console")
     def test_get_method_source_multiline(self, mock_evaluate):
         """Test method source retrieval with multiline code."""
         multiline_source = """collect: aBlock
